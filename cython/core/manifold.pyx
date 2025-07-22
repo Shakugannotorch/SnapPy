@@ -143,7 +143,7 @@ cdef class Manifold(Triangulation):
         do_Dehn_filling(self.c_triangulation)
         self.hyperbolic_structure_initialized = True
 
-    def canonize(self) -> None:
+    def canonize(self):
         """
         Change the triangulation to an arbitrary retriangulation of
         the canonical cell decomposition. See
@@ -160,12 +160,14 @@ cdef class Manifold(Triangulation):
         Note: Due to rounding error, it is possible that this is actually
         not a retriangulation of the canonical cell decomposition.
         """
-        cdef c_FuncResult result
+        cdef Real result
         result = proto_canonize(self.c_triangulation)
-        if FuncResult[result] != 'func_OK':
+        if Real2Number(result) != 0:
             raise RuntimeError('SnapPea failed to find the canonical '
                                'triangulation.')
         self._cache.clear(message='canonize')
+
+        return Real2Number(result)
 
     def _canonical_retriangulation(self, opacities = None):
         """
@@ -204,7 +206,7 @@ cdef class Manifold(Triangulation):
         cdef Boolean *c_opacities
         cdef c_Triangulation *c_retriangulated_triangulation
         cdef int n = get_num_tetrahedra(self.c_triangulation)
-        cdef result
+        cdef Real result
         cdef Triangulation new_tri
 
         if self.c_triangulation is NULL:
@@ -222,7 +224,7 @@ cdef class Manifold(Triangulation):
         else:
             c_opacities = NULL
             result = proto_canonize(c_retriangulated_triangulation)
-            if FuncResult[result] != 'func_OK':
+            if Real2Number(result) != 0:
                 free_triangulation(c_retriangulated_triangulation)
                 raise RuntimeError('SnapPea failed to find the canonical '
                                    'triangulation.')

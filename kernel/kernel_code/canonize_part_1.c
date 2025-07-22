@@ -102,7 +102,7 @@ static Boolean      would_create_negatively_oriented_tetrahedra(Tetrahedron *tet
 static Boolean      validate_canonical_triangulation(Triangulation *manifold);
 
 
-FuncResult proto_canonize(
+Real proto_canonize(
     Triangulation   *manifold)
 {
     /*
@@ -292,9 +292,11 @@ FuncResult proto_canonize(
     }
 
     if (all_done)
-	return func_OK;
+	//return func_OK;
+    return 0;
     else
-	return func_failed;
+	//return func_failed;
+    return 1;
 }
 
 static Boolean check_geometric_triangulation(

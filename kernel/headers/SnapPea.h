@@ -718,7 +718,7 @@ extern Boolean      is_canonical_triangulation(Triangulation *manifold);
  *
  */
 
-extern FuncResult   proto_canonize(Triangulation *manifold);
+extern Real   proto_canonize(Triangulation *manifold);
 
 /**<
  *  Replaces a Triangulation by the canonical triangulation of the
