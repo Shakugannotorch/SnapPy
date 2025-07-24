@@ -84,10 +84,12 @@
 #include "kernel.h"
 #include "canonize.h"
 #include "kernel_namespace.h"
+#include "stdio.h"
+#include "isomorphism_signature.h"
 
-#define MAX_ATTEMPTS          1000
-#define MAX_RETRIANGULATIONS  1000
-#define MAX_MOVES   1000
+#define MAX_ATTEMPTS          10000
+#define MAX_RETRIANGULATIONS  10000
+#define MAX_MOVES   10000
 #define ANGLE_EPSILON           1e-6
 
 static FuncResult   validate_hyperbolic_structure(Triangulation *manifold);
@@ -101,9 +103,30 @@ static Real       sum_of_tilts(Tetrahedron *tet0, FaceIndex f0);
 static Boolean      would_create_negatively_oriented_tetrahedra(Tetrahedron *tet0, FaceIndex f0);
 static Boolean      validate_canonical_triangulation(Triangulation *manifold);
 
+static Boolean strict_attempt_two_to_three(Triangulation   *manifold);
+static Boolean no_flat_attempt_two_to_three(Triangulation   *manifold);
+static Boolean strict_would_create_negatively_oriented_tetrahedra(Tetrahedron *tet0,FaceIndex   f0);
+static Boolean would_create_flat_tetrahedra(Tetrahedron *tet0,FaceIndex   f0);
+
+static FuncResult config_proto_canonize(Triangulation   *manifold, int mod);
 
 FuncResult proto_canonize(
     Triangulation   *manifold)
+{
+    char *isoSig;
+
+    isoSig = get_isomorphism_signature(manifold, TRUE);
+
+    config_proto_canonize(triangulation_from_isomorphism_signature(isoSig), 0);
+    config_proto_canonize(triangulation_from_isomorphism_signature(isoSig), 1);
+    config_proto_canonize(triangulation_from_isomorphism_signature(isoSig), 2);
+
+    return func_OK;
+}
+
+
+FuncResult config_proto_canonize(
+    Triangulation   *manifold, int mod)
 {
     /*
      *  95/10/12  JRW
@@ -119,6 +142,7 @@ FuncResult proto_canonize(
     Boolean all_done,
             needs_polishing;
     int     num_attempts, i;
+    FILE *fptr;
 
     num_attempts = 0;
     needs_polishing = FALSE;
@@ -207,11 +231,31 @@ FuncResult proto_canonize(
             /*
              *  Perform 2-3 moves wherever necessary.
              */
-            if (attempt_two_to_three(manifold) == TRUE)
+            if (mod == 0)
             {
-                needs_polishing = TRUE;
-                continue;
+                if (attempt_two_to_three(manifold) == TRUE)
+                {
+                    needs_polishing = TRUE;
+                    continue;
+                }
+            } else if (mod == 1)
+            {
+                if (strict_attempt_two_to_three(manifold) == TRUE)
+                {
+                    needs_polishing = TRUE;
+                    continue;
+                }
+            } else if (mod == 2)
+            {
+                if (no_flat_attempt_two_to_three(manifold) == TRUE)
+                {
+                    needs_polishing = TRUE;
+                    continue;
+                }
             }
+            
+
+            
 
             /*
              *  We can't make any more progress.
@@ -291,11 +335,31 @@ FuncResult proto_canonize(
         compute_CS_fudge_from_value(manifold);
     }
 
+    if (mod == 0)
+    {
+        fptr = fopen("/Users/shana/tmp/default_count.txt", "w");
+    } else if (mod == 1)
+    {
+        fptr = fopen("/Users/shana/tmp/strict_pos_count.txt", "w");
+    } else if (mod == 2)
+    {
+        fptr = fopen("/Users/shana/tmp/no_flat_count.txt", "w");
+    }    
+
     if (all_done)
-	return func_OK;
+    {
+        fprintf(fptr, "%d", num_attempts);
+        fclose(fptr);
+	    return func_OK;
+    }
     else
-	return func_failed;
+    {
+        fprintf(fptr, "%d", -1);
+        fclose(fptr);
+	    return func_failed;
+    }
 }
+
 
 static Boolean check_geometric_triangulation(
     Triangulation   *manifold)
@@ -483,6 +547,66 @@ static Boolean attempt_two_to_three(
 }
 
 
+static Boolean strict_attempt_two_to_three(
+    Triangulation   *manifold)
+{
+    Tetrahedron *tet;
+    FaceIndex   f;
+
+    for (tet = manifold->tet_list_begin.next;
+         tet != &manifold->tet_list_end;
+         tet = tet->next)
+
+        for (f = 0; f < 4; f++)
+
+            if (concave_face(tet, f) == TRUE
+             && strict_would_create_negatively_oriented_tetrahedra(tet, f) == FALSE)
+            {
+                if (two_to_three(tet, f, &manifold->num_tetrahedra) == func_OK)
+
+                    return TRUE;
+
+                else
+
+                    /*
+                     *  We should never get to this point.
+                     */
+                    uFatalError("attempt_two_to_three", "canonize_part_1.c");
+            }
+
+    return FALSE;
+}
+
+static Boolean no_flat_attempt_two_to_three(
+    Triangulation   *manifold)
+{
+    Tetrahedron *tet;
+    FaceIndex   f;
+
+    for (tet = manifold->tet_list_begin.next;
+         tet != &manifold->tet_list_end;
+         tet = tet->next)
+
+        for (f = 0; f < 4; f++)
+
+            if (concave_face(tet, f) == TRUE
+             && would_create_flat_tetrahedra(tet, f) == FALSE)
+            {
+                if (two_to_three(tet, f, &manifold->num_tetrahedra) == func_OK)
+
+                    return TRUE;
+
+                else
+
+                    /*
+                     *  We should never get to this point.
+                     */
+                    uFatalError("attempt_two_to_three", "canonize_part_1.c");
+            }
+
+    return FALSE;
+}
+
 static Boolean concave_face(
     Tetrahedron *tet,
     FaceIndex   f)
@@ -560,6 +684,93 @@ static Boolean would_create_negatively_oriented_tetrahedra(
     return FALSE;
 }
 
+static Boolean strict_would_create_negatively_oriented_tetrahedra(
+    Tetrahedron *tet0,
+    FaceIndex   f0)
+{
+    Permutation gluing;
+    Tetrahedron *tet1;
+    FaceIndex   f1,
+                side0,
+                side1;
+
+    gluing  = tet0->gluing[f0];
+    tet1    = tet0->neighbor[f0];
+    f1      = EVALUATE(gluing, f0);
+
+    /*
+     *  tet0 and tet1 meet at a common 2-simplex.  For each edge
+     *  of that 2-simplex, add the incident dihedral angles of
+     *  tet0 and tet1.  If any such sum is greater than pi, then
+     *  the two_to_three() move would create a negatively oriented
+     *  Tetrahedron on that side, and we return TRUE.  Otherwise
+     *  no negatively oriented Tetrahedra will be created, and we
+     *  return FALSE.
+     *
+     *  Choose ANGLE_EPSILON to allow the creation of Tetrahedra which
+     *  are just barely negatively oriented, but essentially flat.
+     */
+
+    for (side0 = 0; side0 < 4; side0++)
+    {
+        if (side0 == f0)
+            continue;
+
+        side1 = EVALUATE(gluing, side0);
+
+        if (tet0->shape[complete]->cwl[ultimate][edge3_between_faces[f0][side0]].log.imag
+          + tet1->shape[complete]->cwl[ultimate][edge3_between_faces[f1][side1]].log.imag
+          >= PI)
+
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+static Boolean would_create_flat_tetrahedra(
+    Tetrahedron *tet0,
+    FaceIndex   f0)
+{
+    Permutation gluing;
+    Tetrahedron *tet1;
+    FaceIndex   f1,
+                side0,
+                side1;
+
+    gluing  = tet0->gluing[f0];
+    tet1    = tet0->neighbor[f0];
+    f1      = EVALUATE(gluing, f0);
+
+    /*
+     *  tet0 and tet1 meet at a common 2-simplex.  For each edge
+     *  of that 2-simplex, add the incident dihedral angles of
+     *  tet0 and tet1.  If any such sum is greater than pi, then
+     *  the two_to_three() move would create a negatively oriented
+     *  Tetrahedron on that side, and we return TRUE.  Otherwise
+     *  no negatively oriented Tetrahedra will be created, and we
+     *  return FALSE.
+     *
+     *  Choose ANGLE_EPSILON to allow the creation of Tetrahedra which
+     *  are just barely negatively oriented, but essentially flat.
+     */
+
+    for (side0 = 0; side0 < 4; side0++)
+    {
+        if (side0 == f0)
+            continue;
+
+        side1 = EVALUATE(gluing, side0);
+
+        if (tet0->shape[complete]->cwl[ultimate][edge3_between_faces[f0][side0]].log.imag
+          + tet1->shape[complete]->cwl[ultimate][edge3_between_faces[f1][side1]].log.imag
+          > PI - ANGLE_EPSILON)
+
+            return TRUE;
+    }
+
+    return FALSE;
+}
 
 static Boolean validate_canonical_triangulation(
     Triangulation   *manifold)
