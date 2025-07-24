@@ -451,7 +451,7 @@ cdef extern from "SnapPea.h":
     extern void compress_abelian_group(c_AbelianGroup *g) except *
     extern void free_abelian_group(c_AbelianGroup *g) except *
     extern c_FuncResult canonize(c_Triangulation *manifold) except *
-    extern Real proto_canonize(c_Triangulation *manifold) except *
+    extern c_FuncResult proto_canonize(c_Triangulation *manifold) except *
     extern void canonical_retriangulation(c_Triangulation *manifold) except *
     extern void canonical_retriangulation_with_opacities(c_Triangulation *manifold, Boolean *opacities) except *
     extern Boolean is_canonical_triangulation(c_Triangulation *manifold) except *
