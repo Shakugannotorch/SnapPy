@@ -1,0 +1,475 @@
+# This is the log of the first part of the demo, which was done in the
+# stand-alone SnapPy app.
+
+In[1]: Manifold?
+
+Init signature: Manifold(self, /, *args, **kwargs)
+Docstring:     
+A Manifold is a :class:`Triangulation` together with a geometric structure.
+That is, a Manifold is an ideal triangulation of the interior of a
+compact 3-manifold with torus and Klein-bottle boundary components, where
+each tetrahedron has been assigned the geometry of an ideal tetrahedron
+in hyperbolic 3-space. A Dehn-filling can be specified for each
+boundary component, allowing the description of closed 3-manifolds,
+some orbifolds and cone 3-manifolds. Here's a quick example:
+
+>>> M = Manifold('9_42')
+>>> M.volume()  # doctest: +NUMERIC6
+4.05686022
+>>> M.cusp_info('shape') # doctest: +NUMERIC6
+[-4.278936315 + 1.95728679*I]
+
+This is an example for running SnapPy inside Sage::
+
+  sage: import snappy
+  sage: M = snappy.Manifold('m125(1,2)(4,5)')
+  sage: M.is_orientable()
+  True
+
+An alternative way of running SnapPy inside Sage::
+
+  sage: from snappy import *
+  sage: M = Manifold('m123')
+  sage: M.num_cusps()
+  1
+
+
+A Manifold can be specified in a number of ways, e.g.
+
+- Manifold('9_42') : The complement of the knot 9_42 in S^3.
+- Manifold('m125(1,2)(4,5)') : The SnapPea census manifold m125
+  where the first cusp has Dehn filling (1,2) and the second cusp has
+  filling (4,5).
+- Manifold() : Opens a link editor window where can you
+  specify a link complement.
+
+In general, the specification can be from among the below, with
+information on Dehn fillings added.
+
+- SnapPea cusped census manifolds: e.g. 'm123', 's123', 'v123'.
+
+- Link complements:
+
+   + Rolfsen's table: e.g. '4_1', '04_1', '5^2_6', '6_4^7', 'L20935', 'l104001'.
+   + Hoste-Thistlethwaite Knotscape table:  e.g. '11a17' or '12n345'
+   + Callahan-Dean-Weeks-Champanerkar-Kofman-Patterson knots: e.g. 'K6_21'.
+   + Dowker-Thistlethwaite code: e.g. 'DT:[(6,8,2,4)]'
+
+- Once-punctured torus bundles: e.g. 'b++LLR', 'b+-llR', 'bo-RRL', 'bn+LRLR'
+
+- Fibered manifold associated to a braid: 'Braid[1,2,-3,4]'
+
+  Here, the braid is thought of as a mapping class of the
+  punctured disc, and this manifold is the corresponding
+  mapping torus.  If you want the braid closure, do (1,0) filling
+  of the last cusp.
+
+- From mapping class group data using Twister:
+
+  'Bundle(S_{1,1}, [a0, B1])' or 'Splitting(S_{1,0}, [b1, A0], [a0,B1])'
+
+  See the help for the 'twister' module for more.
+
+- A SnapPea triangulation or link projection file: 'filename'
+
+  The file will be loaded if found in the current directory or the
+  path given by the shell variable ``SNAPPEA_MANIFOLD_DIRECTORY``.
+  See :py:meth:`Manifold.save` for details.
+
+- A string containing the contents of a SnapPea triangulation or link
+  projection file.
+
+In[2]: M = Manifold('9_42')
+
+In[3]: M.volume()
+
+Out[3]: 4.0568602242
+
+In[4]: M.homology()
+
+Out[4]: Z
+
+In[5]: M.fundamental_group()
+
+Out[5]: 
+Generators:
+   a,b
+Relators:
+   aaaabbABBBAbb
+
+In[7]: M.is_two_bridge()
+
+Out[7]: False
+
+In[8]: ?M.is_two_bridge
+
+Signature: M.is_two_bridge() -> 'bool'
+Docstring:
+If the manifold is the complement of a two-bridge knot or link
+in :math:`S^3`, then this method returns :math:`(p,q)` where
+:math:`p/q` is the fraction describing the link.
+Otherwise, returns ``False``.
+
+>>> M = Manifold('m004')
+>>> M.is_two_bridge()
+(2, 5)
+>>> M = Manifold('m016')
+>>> M.is_two_bridge()
+False
+
+Note: An answer of ``True`` is rigorous, but not the answer
+``False``, as there could be numerical errors resulting in
+finding an incorrect canonical triangulation.
+Type:      method
+In[9]: M
+
+Out[9]: 9_42(0,0)
+
+In[10]: K = M.link()
+
+In[11]: K.seifert_matrix()
+
+Out[11]: 
+[[0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 1, -1, 0, 0, 0, 0, 0],
+ [0, 0, 1, -1, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 1, -1, 0, 0, 0],
+ [-1, 0, 0, 0, 1, 0, -1, 0],
+ [0, 0, 0, 0, 0, 0, 1, 0],
+ [0, 0, 0, -1, 0, 0, 1, -1]]
+
+In[12]: E = K.exterior()
+
+In[13]: M.is_isometric_to(E)
+
+Out[13]: True
+
+In[14]: M = Manifold()
+Starting the link editor.
+Select Tools->Send to SnapPy to load the link complement.
+
+New triangulation received from PLink!
+In[15]: M.volume()
+
+Out[15]: 3.66386237671
+
+In[16]: M.browse()
+
+Out[16]: Browser window for unnamed link(0,0)(0,0)
+
+In[17]: len(HTLinkExteriors)
+
+Out[17]: 180511
+
+In[18]: A = HTLinkExteriors[10000]
+
+In[19]: A
+
+Out[19]: K13n2146(0,0)
+
+In[20]: A.volume()
+
+Out[20]: 15.984295143
+
+In[21]: A.identify()
+
+Out[21]: [K13n2146(0,0)]
+
+In[22]: K = A.link()
+
+In[23]: K.seifert_matrix()
+
+Out[23]: 
+[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, -1, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, -1, 1, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0, 0],
+ [0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+ [0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, 0, -1, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0],
+ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0]]
+
+In[24]: K.knot_floer_homology()
+
+Out[24]: 
+{'L_space_knot': False,
+ 'epsilon': 1,
+ 'fibered': False,
+ 'modulus': 2,
+ 'nu': 2,
+ 'ranks': {(-3, -5): 2,
+  (-2, -4): 10,
+  (-1, -3): 20,
+  (0, -2): 25,
+  (1, -1): 20,
+  (2, 0): 10,
+  (3, 1): 2},
+ 'seifert_genus': 3,
+ 'tau': 2,
+ 'total_rank': 89}
+
+In[25]: ?K.knot_floer_homology
+
+Signature: K.knot_floer_homology(prime=2, complex=False)
+Docstring:
+Uses Zoltán Szabó's HFK Calculator to compute the knot Floer
+homology.  This also gives the Seifert genus, whether the knot
+fibers, etc:
+
+>>> K = Link('K3a1')
+>>> K.knot_floer_homology()    # doctest: +NORMALIZE_WHITESPACE
+{'L_space_knot': True,
+ 'epsilon': 1,
+ 'fibered': True,
+ 'modulus': 2,
+ 'nu': 1,
+ 'ranks': {(-1, -2): 1, (0, -1): 1, (1, 0): 1},
+ 'seifert_genus': 1,
+ 'tau': 1,
+ 'total_rank': 3}
+
+The homology itself is encoded by 'ranks', with the form::
+
+  (Alexander grading, Maslov grading): dimension
+
+For example, here is the Conway knot, which has Alexander
+polynomial 1 and genus 3:
+
+>>> L = Link('K11n34')
+>>> ranks = L.knot_floer_homology()['ranks']
+>>> [(a, m) for a, m in ranks if a == 3]
+[(3, 3), (3, 4)]
+>>> ranks[3, 3], ranks[3, 4]
+(1, 1)
+
+Computation is done over F_2 by default, other primes less
+than 2^15 can be used instead via the optional "prime"
+parameter.
+
+If the parameter `complex` is set to True, then the simplified
+"UV = 0" knot Floer chain complex is returned. This complex is
+computed over the ring F[U,V]/(UV = 0), where F is the integers
+mod the chosen prime; this corresponds to only the horizontal and
+vertical arrows in the full knot Floer complex. The complex is
+specified by:
+
+* generators: a dictionary from the generator names to their
+  (Alexander, Maslov) gradings.  The number of generators is
+  equal to the total_rank.
+
+* differential: a dictionary whose value on (a, b) is an integer
+  specifying the coefficient on the differential from generator a
+  to generator b, where only nonzero differentials are
+  recorded. (The coefficient on the differential is really an
+  element of F[U,V]/(UV = 0), but the power of U or V can be
+  recovered from the gradings on a and b so only the element of F
+  is recorded.)
+
+For example, to compute the vertical differential, whose homology
+is HFhat(S^3), you can do::
+
+  sage: data = L.knot_floer_homology(prime=31991, complex=True)
+  sage: gens, diff = data['generators'], data['differentials']
+  sage: vert = {(i,j):diff[i, j] for i, j in diff
+  ...            if gens[i][1] == gens[j][1] + 1}
+  sage: from sage.all import matrix, GF
+  sage: M = matrix(GF(31991), len(gens), len(gens), vert, sparse=True)
+  sage: M*M == 0
+  True
+  sage: M.right_kernel().rank() - M.rank()
+  1
+
+In[26]: ?K.knot_floer_homology
+
+Signature: K.knot_floer_homology(prime=2, complex=False)
+Docstring:
+Uses Zoltán Szabó's HFK Calculator to compute the knot Floer
+homology.  This also gives the Seifert genus, whether the knot
+fibers, etc:
+
+>>> K = Link('K3a1')
+>>> K.knot_floer_homology()    # doctest: +NORMALIZE_WHITESPACE
+{'L_space_knot': True,
+ 'epsilon': 1,
+ 'fibered': True,
+ 'modulus': 2,
+ 'nu': 1,
+ 'ranks': {(-1, -2): 1, (0, -1): 1, (1, 0): 1},
+ 'seifert_genus': 1,
+ 'tau': 1,
+ 'total_rank': 3}
+
+The homology itself is encoded by 'ranks', with the form::
+
+  (Alexander grading, Maslov grading): dimension
+
+For example, here is the Conway knot, which has Alexander
+polynomial 1 and genus 3:
+
+>>> L = Link('K11n34')
+>>> ranks = L.knot_floer_homology()['ranks']
+>>> [(a, m) for a, m in ranks if a == 3]
+[(3, 3), (3, 4)]
+>>> ranks[3, 3], ranks[3, 4]
+(1, 1)
+
+Computation is done over F_2 by default, other primes less
+than 2^15 can be used instead via the optional "prime"
+parameter.
+
+If the parameter `complex` is set to True, then the simplified
+"UV = 0" knot Floer chain complex is returned. This complex is
+computed over the ring F[U,V]/(UV = 0), where F is the integers
+mod the chosen prime; this corresponds to only the horizontal and
+vertical arrows in the full knot Floer complex. The complex is
+specified by:
+
+* generators: a dictionary from the generator names to their
+  (Alexander, Maslov) gradings.  The number of generators is
+  equal to the total_rank.
+
+* differential: a dictionary whose value on (a, b) is an integer
+  specifying the coefficient on the differential from generator a
+  to generator b, where only nonzero differentials are
+  recorded. (The coefficient on the differential is really an
+  element of F[U,V]/(UV = 0), but the power of U or V can be
+  recovered from the gradings on a and b so only the element of F
+  is recorded.)
+
+For example, to compute the vertical differential, whose homology
+is HFhat(S^3), you can do::
+
+  sage: data = L.knot_floer_homology(prime=31991, complex=True)
+  sage: gens, diff = data['generators'], data['differentials']
+  sage: vert = {(i,j):diff[i, j] for i, j in diff
+  ...            if gens[i][1] == gens[j][1] + 1}
+  sage: from sage.all import matrix, GF
+  sage: M = matrix(GF(31991), len(gens), len(gens), vert, sparse=True)
+  sage: M*M == 0
+  True
+  sage: M.right_kernel().rank() - M.rank()
+  1
+
+In[27]: K.knot_floer_homology()
+
+Out[27]: 
+{'L_space_knot': False,
+ 'epsilon': 1,
+ 'fibered': False,
+ 'modulus': 2,
+ 'nu': 2,
+ 'ranks': {(-3, -5): 2,
+  (-2, -4): 10,
+  (-1, -3): 20,
+  (0, -2): 25,
+  (1, -1): 20,
+  (2, 0): 10,
+  (3, 1): 2},
+ 'seifert_genus': 3,
+ 'tau': 2,
+ 'total_rank': 89}
+
+In[28]: K.braid_word()
+
+Out[28]: [-1, 2, -3, 2, -4, 1, 3, -2, 3, -4, 3, -5, 3, 3, 4, 3, 2, 3, 3, -4, 5]
+
+In[29]: K.DT_code()
+
+Out[29]: [(4, 10, 14, 22, 2, -20, 8, 24, 26, -12, -18, 6, 16)]
+
+In[30]: K.DT_code(True)
+
+Out[30]: 'DT[mambegkaJdlmFIch]'
+
+In[31]: K.PD_code()
+
+Out[31]: 
+[(3, 1, 4, 0),
+ (1, 9, 2, 8),
+ (9, 3, 10, 2),
+ (13, 5, 14, 4),
+ (5, 22, 6, 23),
+ (21, 6, 22, 7),
+ (7, 13, 8, 12),
+ (10, 20, 11, 19),
+ (18, 12, 19, 11),
+ (23, 15, 24, 14),
+ (15, 25, 16, 24),
+ (25, 17, 0, 16),
+ (20, 17, 21, 18)]
+
+In[32]: K.PD_code(min_strand_index=1)
+
+Out[32]: 
+[(4, 2, 5, 1),
+ (2, 10, 3, 9),
+ (10, 4, 11, 3),
+ (14, 6, 15, 5),
+ (6, 23, 7, 24),
+ (22, 7, 23, 8),
+ (8, 14, 9, 13),
+ (11, 21, 12, 20),
+ (19, 13, 20, 12),
+ (24, 16, 25, 15),
+ (16, 26, 17, 25),
+ (26, 18, 1, 17),
+ (21, 18, 22, 19)]
+
+In[33]: T = RationalTangle(-1, 2) + RationalTangle(1, 3) + RationalTangle(1, 7)
+
+In[34]: K = T.numerator_closure()
+
+In[35]: E = K.exterior()
+
+In[36]: E.identify()
+
+Out[36]: [m016(0,0), K3_1(0,0), K12n242(0,0)]
+
+In[38]: E.dehn_fill((18, 1))
+
+In[39]: E.fundamental_group()
+
+Out[39]: 
+Generators:
+   a,b
+Relators:
+   aabaabbAbb
+   abbabbabbabbabbabbabbabbabbabbabbabbabbabbabbabbabbaaBaabbabbabbabbabbabbabbabbabbabbabbabbabbabbabbabbabbabbabb
+
+In[40]: E.dehn_fill((-18, 1))
+
+In[43]: E.fundamental_group()
+
+Out[43]: 
+Generators:
+   a
+Relators:
+   aaaaaaaaaaaaaaaaaa
+
+In[44]: K.jones_polynomial()
+---------------------------------------------------------------------------
+SageNotAvailable                          Traceback (most recent call last)
+Cell In[44], line 1
+----> 1 K.jones_polynomial()
+
+File /Applications/SnapPy.app/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.14/site-packages/decorator.py:235, in decorate.<locals>.fun(*args, **kw)
+    233 if not kwsyntax:
+    234     args, kw = fix(args, kw, sig)
+--> 235 return caller(func, *(extras + args), **kw)
+
+File /Applications/SnapPy.app/Contents/Frameworks/Python.framework/Versions/Current/lib/python3.14/site-packages/spherogram/sage_helper.py:37, in _sage_method(function, *args, **kw)
+     36 def _sage_method(function, *args, **kw):
+---> 37     raise SageNotAvailable('Sorry, this feature requires using SnapPy inside Sage.')
+
+SageNotAvailable: Sorry, this feature requires using SnapPy inside Sage.
+
+In[45]: 

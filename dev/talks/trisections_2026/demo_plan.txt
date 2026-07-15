@@ -1,0 +1,131 @@
+A very minicourse on SnapPy
+===========================
+
+A 1.5 hour presentation given as part of the 2026 Trisection workshop.
+
+Browser tabs:
+
+* snappy.computop.org
+* sagemath.org
+
+
+Intro
+=====
+
+* Prepared 45 minute demo, then more free form.
+* PLEASE ASK QUESTIONS THROUGHOUT.
+
+SnapPy
+======
+
+a) Introspection and tab completion.
+
+b) Link editor. Figure 8 knot plus simple additional component as shown in fig8_clasp.pdf
+
+c) Browse
+
+d) Censuses, specifically A = HTLinkExteriors[10000]; 1M+ manfiolds
+
+e) Manifold and Link
+   
+f) K = A.seifert_matrix(), K.knot_floer_homology()
+
+g) K.braid_word(), K.bridge_upper_bound(),
+   K.DT_code(), K.PD_code(min_strand_index=1)
+
+h) Making links programmatically.  Show lens space surgeries on (-2, 3 ,7).
+
+i) K.jones_polynomial()
+   
+
+SnapPy + Sage
+=============
+
+* M = snappy.PlausibleKnots[350] = snappy.Manifold(K13n485)
+
+* Compute alex, jones, etc.
+
+* spec = [(10, [0, 20]), (20, [0, 10])]
+
+
+  * fox-milnor, then HKL
+  * ribbon_concordant links.
+
+
+Extra databases
+===============
+
+* plausible_knots
+* snappy_16_knots
+
+
+================
+
+sage: M = snappy.Manifold('K12n242')
+sage: M.dehn_fill((4, 0))
+sage: C = M.covers(4, cover_type='cyclic')[0]
+sage: D = C.drill(0)
+K12n242~cyc~0-0(1,0)(0,0)
+sage: F = D.filled_triangulation()
+sage: E = F.drill(0).drill(0)
+sage: E.volume()
+16.7734917111716
+sage: E.identify()
+[]
+sage: import itertools
+sage: for slopes in itertools.product(*E.short_slopes()):
+....:     T = E.copy()
+....:     T.dehn_fill(slopes)
+....:     if T.fundamental_group().num_generators() == 0:
+....:         print(slopes)
+....:         break
+....: 
+((0, 1), (1, 1), (0, 1))
+sage: E.dehn_fill(((0, 1), (1, 1), (0, 1)))
+sage: L = E.exterior_to_link()
+sage: L
+<Link: 3 comp; 36 cross>
+sage: L.view()
+sage: W = L.exterior()
+sage: E.dehn_fill([(0, 0), (0,0), (0, 0)])
+sage: E.randomize()
+sage: E.is_isometric_to(W, True)
+[0 -> 0  1 -> 1  2 -> 2
+ [2 -1]  [ 1 0]  [-3 1]
+ [1  0]  [-1 1]  [-1 0]
+ Does not extend to link,
+ 0 -> 1  1 -> 0  2 -> 2
+ [ 1 0]  [2 -1]  [3 -1]
+ [-1 1]  [1  0]  [1  0]
+ Does not extend to link]
+sage: W.dehn_fill([(2, 1), (1, -1), (3, 1)])
+sage: W.is_isometric_to(C)
+True
+
+
+Flipper
+=======
+
+sage: import flipper, snappy
+sage: M = snappy.Manifold('K12n242')
+sage: phi = flipper.monodromy_from_bundle(M)
+sage: rho = phi.canonical()
+sage: rho.stratum()
+{Puncture 0: 18}
+sage: rho.dilatation()
+RealNumberField([1, 1, 0, -1, -1, -1, -1, -1, 0, 1, 1], -1)([0, 1])
+sage: float(rho.dilatation())
+1.1762808182599176
+sage: M.alexander_polynomial().roots(RR)
+[(-1.17628081825992, 1), (-0.850137130927042, 1)]
+
+
+KnotJob
+=======
+
+
+
+Comming soon
+============
+
+* Shana Li

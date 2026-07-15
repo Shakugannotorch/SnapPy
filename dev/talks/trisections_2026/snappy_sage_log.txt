@@ -1,0 +1,206 @@
+# SnapPy used inside of SageMath.
+#
+# First session: ribbon concordance.
+
+$ sage
+┌────────────────────────────────────────────────────────────────────┐
+│ SageMath version 10.8, Release Date: 2025-12-18                    │
+│ Using Python 3.13.7. Type "help()" for help.                       │
+└────────────────────────────────────────────────────────────────────┘
+sage: import snappy
+sage: M = snappy.Manifold('K13n485')
+sage: K = M.link()
+sage: K.jones_polynomial()
+q^-12 - 3*q^-10 + 6*q^-8 - 11*q^-6 + 15*q^-4 - 18*q^-2 + 20 - 17*q^2 + 14*q^4 - 9*q^6 + 5*q^8 - 2*q^10
+sage: K.alexander_polynomial()
+t^10 - 4*t^9 + 8*t^8 - 14*t^7 + 21*t^6 - 25*t^5 + 21*t^4 - 14*t^3 + 8*t^2 - 4*t + 1
+sage: K.alexander_polynomial().factor()
+(t^5 - 3*t^4 + 3*t^3 - 2*t^2 + t - 1) * (t^5 - t^4 + 2*t^3 - 3*t^2 + 3*t - 1)
+sage: M.fox_milnor_test()
+True
+sage: ?M.slice_obstruction_HKL
+sage: spec = [(10, [0, 20]), (20, [0, 10])]
+sage: M.slice_obstruction_HKL(spec, verbose=True)
+    Looking at (2, 11) ...
+    Looking at (3, 13) ...
+    Looking at (4, 5) ...
+    Looking at (4, 11) ...
+    Looking at (8, 5) ...
+    Looking at (8, 11) ...
+    Looking at (9, 13) ...
+    Looking at (9, 19) ...
+    Looking at (4, 5) ...
+    Looking at (8, 5) ...
+    Looking at (16, 5) ...
+sage: K.ribbon_concordant_links()
+['unknot']
+sage: ?K.ribbon_concordant_links
+sage: K.ribbon_concordant_links(certificates=True)
+{'unknot': [[(3, 1, 4, 0),
+   (1, 7, 2, 6),
+   (7, 3, 8, 2),
+   (4, 12, 5, 11),
+   (12, 6, 13, 5),
+   (8, 19, 9, 20),
+   (14, 9, 15, 10),
+   (10, 22, 11, 21),
+   (20, 14, 21, 13),
+   (22, 15, 23, 16),
+   (16, 23, 17, 24),
+   (24, 17, 25, 18),
+   (18, 25, 19, 0)],
+  '3002_0_0',
+  'unknot']}
+
+  
+########################################################################
+#
+# Second session, showing how to install extra manifold censuses:
+#
+########################################################################
+
+$ sage -pip install snappy_16_knots
+Collecting snappy_16_knots
+  Using cached snappy_16_knots-1.21-py3-none-any.whl
+Requirement already satisfied: snappy_15_knots in ./Library/SageMath-10-8/lib/python3.13/site-packages (from snappy_16_knots) (1.2.1)
+Requirement already satisfied: snappy-manifolds in ./Library/SageMath-10-8/lib/python3.13/site-packages (from snappy_15_knots->snappy_16_knots) (1.5b1)
+Installing collected packages: snappy_16_knots
+Successfully installed snappy_16_knots-1.21
+$ sage -pip install plausible_knots
+Collecting plausible_knots
+  Using cached plausible_knots-2.1.4-py3-none-any.whl
+Installing collected packages: plausible_knots
+Successfully installed plausible_knots-2.1.4
+$ sage
+┌────────────────────────────────────────────────────────────────────┐
+│ SageMath version 10.8, Release Date: 2025-12-18                    │
+│ Using Python 3.13.7. Type "help()" for help.                       │
+└────────────────────────────────────────────────────────────────────┘
+sage: import snappy
+sage: len(snappy.HTLinkExteriors)
+1822509
+sage: len(snappy.PlausibleKnots)
+3869541
+sage: A = snappy.PlausibleKnots.random()
+sage: K = A.link()
+sage: K.view()
+<plink.editor.LinkDisplay object at 0x13efb3230>
+Your new Plink window needs an event loop to become visible.
+Type "%gui tk" below (without the quotes) to start one.
+
+sage: %gui tk
+sage: A
+19nh_159648337(0,0)
+sage: ?snappy.PlausibleKnots
+Signature:   snappy.PlausibleKnots(self, **kwargs)
+Type:        PlausibleKnots
+String form: PlausibleKnots without filters
+Length:      3869541
+File:        ~/Library/SageMath-10-8/lib/python3.13/site-packages/plausible_knots/database.py
+Docstring:  
+A database of knots with at most 19 crossings that are "plausibly
+slice" in that they have signature 0 and a normalized Alexander
+polynomial that factors as f(t) f(t^-1) as in Theorem 8.18 of
+[Lickorish, Intro to knot theory].
+
+These are the knots studied in [Dunfield and Gong]
+
+########################################################################
+#
+# The third session showing how to find Dehn surgery descriptions using
+# exterior_to_link.
+#
+########################################################################
+
+sage: M = snappy.Manifold('K12n242')
+sage: M.dehn_fill((4, 0))
+sage: C = M.covers(4, cover_type='cyclic')[0]
+sage: C.volume()
+8.12220369048557
+sage: C.homology()
+Z/3 + Z/3
+sage: D = C.drill(0)
+sage: D
+K12n242~cyc~0-0(1,0)(0,0)
+sage: F = D.filled_triangulation()
+sage: F
+K12n242~cyc~0-0_filled(0,0)
+sage: E = F.drill(0).drill(0)
+sage: E
+K12n242~cyc~0-0_filled-0-0(0,0)(0,0)(0,0)
+sage: E.identify()
+[]
+sage: E.short_slopes()
+[[(1, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)],
+ [(1, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (3, 5), (4, 5)],
+ [(1, 0), (0, 1), (1, 1), (1, 2), (2, 3), (3, 4), (4, 5)]]
+sage: import itertools
+sage: for slopes in itertools.product(*E.short_slopes()):
+....:     T = E.copy()
+....:     T.dehn_fill(slopes)
+....:     if T.fundamental_group().num_generators() == 0:
+....:         print(slopes)
+....:         break
+....: 
+((0, 1), (1, 1), (0, 1))
+sage: E.dehn_fill([(0, 1), (1, 1), (0, 1)])
+sage: E.fundamental_group()
+Generators:
+   
+Relators:
+   
+sage: L = E.exterior_to_link()
+sage: L
+<Link: 3 comp; 36 cross>
+sage: L.view()
+<plink.editor.LinkDisplay object at 0x15af4a210>
+sage: W = L.exterior()
+sage: E.dehn_fill([(0, 0), (0, 0), (0, 0)])
+sage: E.randomize()
+sage: E.is_isometric_to(W)
+True
+sage: E.dehn_fill([(1, 0), (1, 0), (1, 0)])
+sage: E.is_isometric_to(C)
+True
+sage: E.dehn_fill([(0, 0), (0, 0), (0, 0)])
+sage: E.is_isometric_to(W, True)
+[0 -> 0  1 -> 1  2 -> 2
+ [-2 1]  [ 1 0]  [3 -1]
+ [-1 0]  [-1 1]  [1  0]
+ Does not extend to link,
+ 0 -> 1  1 -> 0  2 -> 2
+ [ 1 0]  [-2 1]  [-3 1]
+ [-1 1]  [-1 0]  [-1 0]
+ Does not extend to link]
+sage: W.dehn_fill([(2, 1), (1, -1), (3, 1)])
+sage: W.is_isometric_to(C)
+True
+sage: M = snappy.Manifold('K12n242')
+sage: M.dehn_fill((1, 0))
+sage: M.fundamental_group()
+Generators:
+   
+Relators:
+   
+sage: M.dehn_fill((4, 0))
+sage: C = M.covers(4, cover_type='cyclic')[0]
+sage: CC = M.covers(2, cover_type='cyclic')[0]
+sage: CC
+K12n242~cyc~0(2,0)
+sage: C = M.covers(4, cover_type='cyclic')[0]
+sage: C
+K12n242~cyc~0(1,0)
+sage: len(snappy.HTLinkExteriors(crossings=12, cusps=1))
+2176
+sage: len(snappy.HTLinkExteriors(crossings=10, cusps=1))
+165
+sage: len(snappy.HTLinkExteriors(crossings=12, cusps=1))
+2176
+sage: ans = [M for M in snappy.HTLinkExteriors(crossings=12, cusps=1) if M.alexan
+....: der_polynomial() == 1]
+sage: ans
+[K12n313(0,0), K12n430(0,0)]
+sage:                                                                            
+
+
+

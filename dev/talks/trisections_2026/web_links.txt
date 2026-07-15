@@ -1,0 +1,11 @@
+A list of the main URLs mentioned in the talk, roughly in order of
+appearance.
+
+https://snappy.computop.org
+https://sagemath.org
+https://github.com/3-manifolds/SnapPy
+https://github.com/NathanDunfield/knotjob_python
+https://pypi.org/project/database-knotinfo
+https://github.com/MarkCBell/twister
+https://regina-normal.github.io
+https://github.com/3-manifolds/SnapPy/issues/146
