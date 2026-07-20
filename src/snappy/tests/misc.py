@@ -74,12 +74,35 @@ False
 >>> 'singularity_index' in c.keys()
 False
 
+ManifoldTable
+-------------
+
+>>> len(OrientableCuspedCensus(tets=3))
+9
+>>> len(OrientableCuspedCensus(tets=3)[0:3])
+3
+>>> len(OrientableCuspedCensus(tets=3)[1:3])
+2
+>>> list(OrientableCuspedCensus(tets=3)[1:3])
+[m007(0,0), m009(0,0)]
+>>> list(OrientableCuspedCensus(tets=3)[4:])
+[m011(0,0), m015(0,0), m016(0,0), m017(0,0), m019(0,0)]
+>>> list(OrientableCuspedCensus(tets=3)[4:][1:3])
+[m015(0,0), m016(0,0)]
+>>> list(OrientableCuspedCensus(tets=3)[4:100])
+[m011(0,0), m015(0,0), m016(0,0), m017(0,0), m019(0,0)]
+>>> list(OrientableCuspedCensus(tets=3)[100:])
+[]
+
 """
 
 if not __doc__:
     raise Exception("doc string with tests was not recognized.")
 
-from .. import Manifold, ManifoldHP, Triangulation, TriangulationHP, NonorientableCuspedCensus
+from .. import (
+    Manifold, ManifoldHP,
+    Triangulation, TriangulationHP,
+    OrientableCuspedCensus, NonorientableCuspedCensus)
 
 def my_cusp_orientabilities(T):
     T._testing_compute_cusp_orientabilities()

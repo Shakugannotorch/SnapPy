@@ -221,7 +221,9 @@ class ManifoldTable():
                     base_query += 'where %s ' % self._filter
                 query = base_query + 'order by id limit 1 offset %d' % start
                 start_id = self._cursor.execute(query).fetchone()
-                if start_id is not None:
+                if start_id is None:
+                    conditions.append('false')
+                else:
                     conditions.append('id >= %d' % start_id[0])
                 query = base_query + 'order by id limit 1 offset %d' % stop
                 stop_id = self._cursor.execute(query).fetchone()
