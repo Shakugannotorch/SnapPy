@@ -1640,6 +1640,7 @@ cdef class Manifold(Triangulation):
             curve_to_drill = curves[which_curve].dual_curve
 
         new_name = to_byte_str(self.name() + '-%d' % curve_to_drill.index)
+        c_new_name = new_name
 
         c_triangulation = drill_cusp(self.c_triangulation,
                                      curve_to_drill.c_dual_curve,
