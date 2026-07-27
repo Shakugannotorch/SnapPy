@@ -1500,7 +1500,7 @@ cdef class Manifold(Triangulation):
         Each curve is returned as an info object with these keys
 
         >>> sorted(curves[0].keys())
-        ['complete_length', 'filled_length', 'index', 'max_segments', 'parity']
+        ['complete_length', 'dual_curve', 'filled_length', 'index', 'max_segments', 'parity']
 
         We can drill out any of these curves to get a new manifold
         with one more cusp.
@@ -1515,14 +1515,33 @@ cdef class Manifold(Triangulation):
 
         >>> M.dual_curves(max_segments=2) # doctest: +NUMERIC6
         [  0: orientation-preserving curve of length 0.56239915 - 2.81543089*I]
+
+        We can list the faces of the triangulation that the dual curve
+        meets:
+
+        >>> curve = M.dual_curves()[1]
+        >>> curve.dual_curve.face_intersections()
+        [[False, False, True, True], [False, True, True, False], [False, False, True, True]]
+
+        Here, each sublist says which of the four faces of the corresponding
+        tetrahedron are hit by the curve.
         """
-        cdef int i, num_curves
-        cdef DualOneSkeletonCurve **curve_list
+        cdef int i, num_curves, num_tetrahedra
+        cdef c_DualOneSkeletonCurve **curve_list
         cdef c_MatrixParity parity
         cdef Complex complete_length, filled_length
+        cdef DualOneSkeletonCurve one_dual_curve
 
         if self.c_triangulation is NULL:
             raise ValueError('The Triangulation is empty.')
+
+        args = (max_segments,)
+        try:
+            return self._cache.lookup('dual_curves', *args)
+        except KeyError:
+            pass
+
+        num_tetrahedra = get_num_tetrahedra(self.c_triangulation)
         dual_curves(self.c_triangulation,
                     max_segments,
                     &num_curves,
@@ -1535,17 +1554,23 @@ cdef class Manifold(Triangulation):
                 &filled_length,
                 &parity
                 )
-            result.append(
-                DualCurveInfo(
-                    index=i,
-                    parity=parity,
-                    filled_length=self._number_(Complex2Number(filled_length)),
-                    complete_length=self._number_(Complex2Number(complete_length)),
-                    max_segments=max_segments
-                  )
-               )
-        free_dual_curves(num_curves, curve_list)
-        return ListOnePerLine(result)
+
+            dual_curve = DualOneSkeletonCurve(i, num_tetrahedra)
+            dual_curve.set_c_dual_curve(curve_list[i])
+            dual_curve_info = DualCurveInfo(
+                index=i,
+                parity=parity,
+                filled_length=self._number_(Complex2Number(filled_length)),
+                complete_length=self._number_(Complex2Number(complete_length)),
+                max_segments=max_segments,
+                dual_curve=dual_curve
+            )
+            result.append(dual_curve_info)
+
+        my_free(curve_list)
+        return self._cache.save(ListOnePerLine(result),
+                                'dual_curves',
+                                *args)
 
     def length_spectrum(self,
                         cutoff=1.0,
@@ -1597,32 +1622,28 @@ cdef class Manifold(Triangulation):
         """
 
         cdef int num_curves
-        cdef DualOneSkeletonCurve **curve_list
         cdef c_Triangulation *c_triangulation
         cdef Triangulation result
         cdef char* c_new_name
+        cdef DualOneSkeletonCurve curve_to_drill
 
-        if isinstance(which_curve, DualCurveInfo):
-            max_segments = which_curve.max_segments
-            which_curve = which_curve.index
+        if isinstance(which_curve, DualOneSkeletonCurve):
+            curve_to_drill = which_curve
+        elif isinstance(which_curve, DualCurveInfo):
+            curve_to_drill = which_curve.dual_curve
+        else:
+            which_curve = int(which_curve)
+            curves = self.dual_curves(max_segments=max_segments)
+            if not 0 <= which_curve < len(curves):
+                raise IndexError('The drilling curve requested is not '
+                                 'in range(%d).' % len(curves))
+            curve_to_drill = curves[which_curve].dual_curve
 
-        new_name = to_byte_str(self.name() + '-%d' % which_curve)
-        c_new_name = new_name
-
-        dual_curves(self.c_triangulation,
-                    max_segments,
-                    &num_curves,
-                    &curve_list)
-
-        if which_curve not in range(num_curves):
-            raise IndexError('The drilling curve requested is not '
-                             'in range(%d).' % num_curves)
+        new_name = to_byte_str(self.name() + '-%d' % curve_to_drill.index)
 
         c_triangulation = drill_cusp(self.c_triangulation,
-                                     curve_list[which_curve],
+                                     curve_to_drill.c_dual_curve,
                                      c_new_name)
-        free_dual_curves(num_curves, curve_list)
-
         if c_triangulation == NULL:
             raise RuntimeError('The curve is not isotopic to a geodesic.')
         else:

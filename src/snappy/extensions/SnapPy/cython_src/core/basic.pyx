@@ -631,3 +631,40 @@ def Triangulation_from_Manifold(Manifold M):
     T.set_name(M.name())
     T._cover_info = M._cover_info
     return T
+
+
+cdef class DualOneSkeletonCurve():
+    cdef c_DualOneSkeletonCurve *c_dual_curve
+    cdef readonly int size
+    cdef readonly int index
+    cdef readonly int num_tetrahedra
+
+    def __cinit__(self, index, num_tetrahedra):
+        self.c_dual_curve = NULL
+        self.size = 0
+        self.index = index
+        self.num_tetrahedra = num_tetrahedra
+
+    cdef set_c_dual_curve(self, c_DualOneSkeletonCurve *c_dual_curve):
+        self.c_dual_curve = c_dual_curve
+        self.size = c_dual_curve.size
+
+    def face_intersections(self):
+        if self.c_dual_curve == NULL:
+            raise ValueError('No dual curve set')
+        ans = []
+        for i in range(self.num_tetrahedra):
+            ans.append(
+                [B2B(self.c_dual_curve.tet_intersection[i][j])
+                 for j in range(4)])
+
+        return ans
+
+    def __dealloc__(self):
+        if self.c_dual_curve != NULL:
+            if self.c_dual_curve.tet_intersection != NULL:
+                my_free(self.c_dual_curve.tet_intersection)
+            my_free(self.c_dual_curve)
+
+    def __repr__(self):
+        return f'DualCurve({self.index})'

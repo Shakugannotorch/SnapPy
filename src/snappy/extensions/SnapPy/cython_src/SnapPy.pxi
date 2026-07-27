@@ -89,7 +89,15 @@ cdef extern from "SnapPea.h":
     ctypedef struct c_SymmetryGroup "SymmetryGroup"
     ctypedef struct SymmetryGroupPresentation
     ctypedef struct IsometryList
-    ctypedef struct DualOneSkeletonCurve
+    ctypedef Boolean DualOneSkeletonCurvePiece[4];
+    ctypedef struct c_DualOneSkeletonCurve "DualOneSkeletonCurve":
+        DualOneSkeletonCurvePiece   *tet_intersection
+        c_MatrixParity              parity
+        Complex                     length[2]
+        int                         size
+        c_DualOneSkeletonCurve      *left_child
+        c_DualOneSkeletonCurve      *right_child
+        c_DualOneSkeletonCurve      *next_subtree
 #    ctypedef struct TerseTriangulation
 #    ctypedef struct CuspNeighborhoods
     ctypedef struct NormalSurfaceList
@@ -467,10 +475,10 @@ cdef extern from "SnapPea.h":
     extern void update_poly_visibility(WEPolyhedron *polyhedron, O31Matrix position, O31Vector direction) except *
     extern c_Triangulation *Dirichlet_to_triangulation(WEPolyhedron *polyhedron) except *
     extern c_Triangulation *double_cover(c_Triangulation *manifold) except *
-    extern void dual_curves(c_Triangulation *manifold, int max_size, int *num_curves, DualOneSkeletonCurve ***the_curves) except *
-    extern void get_dual_curve_info(DualOneSkeletonCurve *the_curve, Complex *complete_length, Complex *filled_length, c_MatrixParity *parity) except *
-    extern void free_dual_curves(int num_curves, DualOneSkeletonCurve **the_curves) except *
-    extern c_Triangulation *drill_cusp(c_Triangulation *old_manifold, DualOneSkeletonCurve *curve_to_drill, char *new_name) except *
+    extern void dual_curves(c_Triangulation *manifold, int max_size, int *num_curves, c_DualOneSkeletonCurve ***the_curves) except *
+    extern void get_dual_curve_info(c_DualOneSkeletonCurve *the_curve, Complex *complete_length, Complex *filled_length, c_MatrixParity *parity) except *
+    extern void free_dual_curves(int num_curves, c_DualOneSkeletonCurve **the_curves) except *
+    extern c_Triangulation *drill_cusp(c_Triangulation *old_manifold, c_DualOneSkeletonCurve *curve_to_drill, char *new_name) except *
     extern c_Triangulation *fill_cusps(c_Triangulation *manifold, Boolean fill_cusp[], char *new_name, Boolean fill_all_cusps) except *
     extern c_Triangulation *fill_reasonable_cusps(c_Triangulation *manifold) except *
     extern Boolean cusp_is_fillable(c_Triangulation *manifold, int cusp_index) except *
