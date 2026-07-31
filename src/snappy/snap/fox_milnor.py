@@ -78,7 +78,7 @@ def alexander_polynomial_of_link(manifold, d):
     """
     if isinstance(manifold, Link):
         manifold = manifold.exterior()
-    G = manifold.fundamental_group()
+    G = manifold.fundamental_group(try_hard_to_shorten_relators=False)
     phi = standard_map_to_group_ring_of_abelianization_for_link(G)
     return alexander_polynomial_basic(G, phi, d, pos_leading_coeff=True)
 
